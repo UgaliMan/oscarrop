@@ -40,7 +40,7 @@ jobs:
   docker-build-push:
     name: Docker Build and Push
     needs: terraform-provision
-    uses: UgaliMan/oscarrop.git/.github/workflows/docker-build-push.yml@main
+    uses: .github/workflows/docker-build-push.yml
     with:
       dockerfile_path: ${{ inputs.dockerfile_path }}
       image_name: ${{ inputs.image_name }}

@@ -28,7 +28,11 @@ on:
         required: true
         default: "./k8s"
         type: string
-
+      monitoring_path:
+        description: "Monitoring docker-compose path (if deploying monitoring stack)"
+        required: true
+        default: "./monitoring"
+        type: string
 jobs:
   terraform-provision:
     name: Terraform Provision
@@ -51,3 +55,24 @@ jobs:
     uses: ./.github/workflows/deploy-to-kubernetes.yml
     with:
       manifests_path: ${{ inputs.manifests_path }}
+  
+  deploy-monitoring:
+    name: Deploy Monitoring Stack
+    needs: terraform-provision
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+      - name: Deploy Prometheus and Grafana (Monitoring Stack)
+        working-directory: ${{ inputs.monitoring_path }}
+        run: |
+          docker-compose up -d 

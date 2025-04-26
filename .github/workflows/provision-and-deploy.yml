@@ -32,7 +32,7 @@ on:
 jobs:
   terraform-provision:
     name: Terraform Provision
-    uses: .github/workflows/terraform-plan-apply.yml
+    uses: ./.github/workflows/terraform-plan-apply.yml
     with:
       tf_directory: ${{ inputs.tf_directory }}
       action: ${{ inputs.tf_action }}
@@ -40,7 +40,7 @@ jobs:
   docker-build-push:
     name: Docker Build and Push
     needs: terraform-provision
-    uses: .github/workflows/docker-build-push.yml
+    uses: ./.github/workflows/docker-build-push.yml
     with:
       dockerfile_path: ${{ inputs.dockerfile_path }}
       image_name: ${{ inputs.image_name }}
@@ -48,6 +48,6 @@ jobs:
   deploy-k8s:
     name: Deploy to Kubernetes
     needs: docker-build-push
-    uses: .github/workflows/deploy-to-kubernetes.yml
+    uses: ./.github/workflows/deploy-to-kubernetes.yml
     with:
       manifests_path: ${{ inputs.manifests_path }}

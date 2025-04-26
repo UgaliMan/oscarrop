@@ -1,0 +1,52 @@
+name: Reusable Terraform Workflow
+
+on:
+  workflow_call:
+    inputs:
+      tf_directory:
+        description: "Terraform directory where the config files are located."
+        required: true
+        type: string
+      action:
+        description: "Terraform action to perform: fmt, validate, plan, apply, destroy"
+        required: true
+        type: string
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ inputs.tf_directory }}
+
+      - name: Terraform Fmt
+        if: ${{ inputs.action != 'destroy' }}
+        run: terraform fmt -check -recursive
+        working-directory: ${{ inputs.tf_directory }}
+
+      - name: Terraform Validate
+        if: ${{ inputs.action != 'destroy' }}
+        run: terraform validate
+        working-directory: ${{ inputs.tf_directory }}
+
+      - name: Terraform Plan
+        if: ${{ inputs.action == 'plan' || inputs.action == 'apply' }}
+        run: terraform plan
+        working-directory: ${{ inputs.tf_directory }}
+
+      - name: Terraform Apply
+        if: ${{ inputs.action == 'apply' }}
+        run: terraform apply -auto-approve
+        working-directory: ${{ inputs.tf_directory }}
+
+      - name: Terraform Destroy
+        if: ${{ inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
+        working-directory: ${{ inputs.tf_directory }}

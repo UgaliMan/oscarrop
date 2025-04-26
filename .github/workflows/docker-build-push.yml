@@ -1,0 +1,26 @@
+name: Reusable Docker Build and Push to ECR
+
+on:
+  workflow_call:
+    inputs:
+      dockerfile_path:
+        required: true
+        type: string
+      image_name:
+        required: true
+        type: string
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ inputs.image_name }}:latest ${{ inputs.dockerfile_path }}
+          docker push ${{ inputs.image_name }}:latest

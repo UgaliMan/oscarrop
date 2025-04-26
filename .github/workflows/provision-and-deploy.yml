@@ -1,0 +1,53 @@
+name: Provision Infra + Build & Push Docker + Deploy to Kubernetes
+
+on:
+  workflow_dispatch:
+    inputs:
+      tf_directory:
+        description: "Terraform directory: infra, eks, monitoring"
+        required: true
+        default: "infra"
+        type: string
+      tf_action:
+        description: "Terraform action: plan, apply, destroy"
+        required: true
+        default: "plan"
+        type: string
+      dockerfile_path:
+        description: "Path to Dockerfile folder (if building image)"
+        required: true
+        default: "./"
+        type: string
+      image_name:
+        description: "Docker image name to push to ECR (if building image)"
+        required: true
+        default: "your-ecr-repo-name"
+        type: string
+      manifests_path:
+        description: "Kubernetes manifests path (if deploying to K8s)"
+        required: true
+        default: "./k8s"
+        type: string
+
+jobs:
+  terraform-provision:
+    name: Terraform Provision
+    uses: .github/workflows/terraform-plan-apply.yml
+    with:
+      tf_directory: ${{ inputs.tf_directory }}
+      action: ${{ inputs.tf_action }}
+
+  docker-build-push:
+    name: Docker Build and Push
+    needs: terraform-provision
+    uses: UgaliMan/oscarrop.git/.github/workflows/docker-build-push.yml@main
+    with:
+      dockerfile_path: ${{ inputs.dockerfile_path }}
+      image_name: ${{ inputs.image_name }}
+
+  deploy-k8s:
+    name: Deploy to Kubernetes
+    needs: docker-build-push
+    uses: .github/workflows/deploy-to-kubernetes.yml
+    with:
+      manifests_path: ${{ inputs.manifests_path }}
